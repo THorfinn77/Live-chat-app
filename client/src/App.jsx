@@ -1,16 +1,15 @@
-// client/src/App.jsx
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("http://10.120.7.109:3001"); // LAN IP of the host system
+const socket = io("http://localhost:3001");
 
 function App() {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
 
   useEffect(() => {
-    socket.on("receive_message", (data) => {
-      setChat((prev) => [...prev, data]);
+    socket.on("receive_message", (msg) => {
+      setChat((prev) => [...prev, msg]);
     });
 
     return () => {
@@ -19,32 +18,30 @@ function App() {
   }, []);
 
   const sendMessage = () => {
-    if (message.trim()) {
-      socket.emit("send_message", message);
-      setMessage("");
-    }
+    if (message.trim() === "") return;
+
+    socket.emit("send_message", message);
+    setMessage("");
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h2>🔥 Live Chat</h2>
-      <div style={{ marginBottom: "1rem" }}>
-        <input
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Type your message"
-        />
-        <button onClick={sendMessage}>Send</button>
+    <div style={{ padding: 20 }}>
+      <h2>Live Chat</h2>
+      <div style={{ marginBottom: 20 }}>
+        {chat.map((msg, i) => (
+          <div key={i} style={{ margin: "5px 0" }}>
+            {msg}
+          </div>
+        ))}
       </div>
-      <div>
-        <h4>Messages:</h4>
-        <ul>
-          {chat.map((msg, idx) => (
-            <li key={idx}>{msg}</li>
-          ))}
-        </ul>
-      </div>
+      <input
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+        placeholder="Type message..."
+        style={{ width: "70%", marginRight: 10 }}
+      />
+      <button onClick={sendMessage}>Send</button>
     </div>
   );
 }

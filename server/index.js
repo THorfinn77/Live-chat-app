@@ -1,26 +1,25 @@
-// server/index.js
 const express = require("express");
 const http = require("http");
-const { Server } = require("socket.io");
 const cors = require("cors");
+const { Server } = require("socket.io");
 
 const app = express();
 app.use(cors());
 
 const server = http.createServer(app);
-
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allow all origins for LAN testing
-    methods: ["GET", "POST"]
-  }
+    origin: "*", // Allow all origins for now (safe for dev)
+    methods: ["GET", "POST"],
+  },
 });
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  socket.on("send_message", (data) => {
-    io.emit("receive_message", data); // Broadcast to all clients
+  socket.on("send_message", (msg) => {
+    console.log("Message received:", msg);
+    io.emit("receive_message", msg); // Broadcast to everyone including sender
   });
 
   socket.on("disconnect", () => {
@@ -28,7 +27,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// IMPORTANT: 0.0.0.0 allows LAN access
-server.listen(3001, "0.0.0.0", () => {
-  console.log("✅ Server is running at http://10.120.7.109:3001");
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
