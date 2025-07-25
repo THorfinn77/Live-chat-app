@@ -7,27 +7,32 @@ const app = express();
 app.use(cors());
 
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allow all origins for now (safe for dev)
+    origin: ["https://live-chat-app-5d8g.vercel.app"], // ✅ Your deployed frontend link
     methods: ["GET", "POST"],
   },
 });
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+  console.log(`⚡: ${socket.id} user connected`);
 
-  socket.on("send_message", (msg) => {
-    console.log("Message received:", msg);
-    io.emit("receive_message", msg); // Broadcast to everyone including sender
+  socket.on("join_room", (room) => {
+    socket.join(room);
+    console.log(`👥: User with ID: ${socket.id} joined room: ${room}`);
+  });
+
+  socket.on("send_message", (data) => {
+    console.log(`📨: Message sent to room ${data.room}: ${data.message}`);
+    socket.to(data.room).emit("receive_message", data); // ✅ emit to others in the room
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+    console.log("❌: User Disconnected", socket.id);
   });
 });
 
-const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+server.listen(5000, () => {
+  console.log("✅ Server is running on port 5000");
 });
