@@ -8,9 +8,8 @@ const config = {
   
   // Production server (deployed)
   production: {
-    // Replace with your actual Render deployment URL
-    serverUrl: "https://quantumchat-backend.onrender.com",
-    clientUrl: "https://quantumchat-client.vercel.app"
+    serverUrl: "https://live-chat-app-finale.onrender.com",
+    clientUrl: "https://live-chat-fasvtpdgg-thorfinns-projects-edbf0f6d.vercel.app"
   }
 };
 
