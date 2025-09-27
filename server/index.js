@@ -189,6 +189,17 @@ io.on("connection", (socket) => {
   });
 });
 
+// Basic root route for health check
+app.get("/", (req, res) => {
+  res.json({
+    message: "🚀 QuantumChat Server is running!",
+    status: "online",
+    timestamp: new Date().toISOString(),
+    rooms: Array.from(rooms.keys()),
+    activeUsers: activeUsers.size
+  });
+});
+
 // API endpoints for room management
 app.get("/api/rooms", (req, res) => {
   const roomList = Array.from(rooms.values()).map(room => ({
@@ -206,6 +217,15 @@ app.get("/api/room/:roomId/messages", (req, res) => {
   } else {
     res.json([]);
   }
+});
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({
+    status: "healthy",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
 });
 
 const PORT = process.env.PORT || 5000;
