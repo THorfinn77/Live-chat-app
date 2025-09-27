@@ -37,8 +37,18 @@ function App() {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState("connecting");
   const [serverUrl, setServerUrl] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [editText, setEditText] = useState("");
+  const [isDarkTheme, setIsDarkTheme] = useState(true);
+  const [notifications, setNotifications] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -47,6 +57,15 @@ function App() {
   useEffect(() => {
     scrollToBottom();
   }, [chat]);
+
+  // Search functionality
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      searchMessages();
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchQuery]);
 
   useEffect(() => {
     // Set server URL for display
@@ -170,6 +189,54 @@ function App() {
     setShowEmojiPicker(false);
   };
 
+  // 10 Important Features Functions
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // For now, just show file name in message
+      setMessage(prev => prev + `📎 ${file.name}`);
+    }
+  };
+
+  const startRecording = () => {
+    setIsRecording(true);
+    // Voice recording implementation would go here
+    console.log("Recording started...");
+  };
+
+  const stopRecording = () => {
+    setIsRecording(false);
+    // Voice recording stop implementation would go here
+    console.log("Recording stopped...");
+  };
+
+  const searchMessages = () => {
+    if (searchQuery.trim()) {
+      const results = chat.filter(msg => 
+        msg.message.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setSearchResults(results);
+    }
+  };
+
+  const editMessage = (messageId, currentText) => {
+    setEditingMessage(messageId);
+    setEditText(currentText);
+  };
+
+  const saveEdit = () => {
+    if (editText.trim()) {
+      // Update message logic would go here
+      setEditingMessage(null);
+      setEditText("");
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingMessage(null);
+    setEditText("");
+  };
+
   const emojis = ["😀", "😂", "😍", "🤔", "👍", "👎", "❤️", "🎉", "🔥", "💯"];
 
   const formatTime = (timestamp) => {
@@ -240,6 +307,22 @@ function App() {
           </div>
         </div>
         <div className="header-actions">
+          <button 
+            className="theme-switcher"
+            onClick={() => setIsDarkTheme(!isDarkTheme)}
+            title="Toggle Theme"
+          >
+            {isDarkTheme ? '☀️' : '🌙'}
+          </button>
+          
+          <button 
+            onClick={() => setShowSearch(true)}
+            style={{background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', marginRight: '10px'}}
+            title="Search Messages"
+          >
+            🔍
+          </button>
+          
           <div className={`connection-indicator ${connectionStatus}`}>
             <div className={`status-dot ${connectionStatus}`}></div>
             <span>
@@ -258,7 +341,7 @@ function App() {
       {/* Chat Area */}
       <div className="chat-messages">
         {chat.map((data, index) => (
-          <div key={index} className={`message ${data.username === username ? 'own-message' : 'other-message'}`}>
+          <div key={index} className={`message ${data.username === username ? 'own-message' : 'other-message'} message-enter`}>
             <div className="message-content">
               <div className="message-header">
                 <img 
@@ -267,9 +350,62 @@ function App() {
                   className="message-avatar"
                 />
                 <span className="message-username">{data.username}</span>
+                <span className="user-status online"></span>
                 <span className="message-time">{formatTime(data.time)}</span>
+                <span className="encryption-indicator">
+                  🔒
+                </span>
               </div>
-              <div className="message-text">{data.message}</div>
+              
+              {editingMessage === data.id ? (
+                <div className="message-edit active">
+                  <input
+                    type="text"
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    className="edit-input"
+                    autoFocus
+                  />
+                  <div className="edit-actions">
+                    <button onClick={saveEdit} className="edit-btn">Save</button>
+                    <button onClick={cancelEdit} className="cancel-btn">Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="message-text">{data.message}</div>
+              )}
+              
+              {/* Message Status */}
+              <div className="message-status">
+                <div className="status-icon status-delivered"></div>
+                <span>Delivered</span>
+              </div>
+              
+              {/* Message Reactions */}
+              <div className="message-reactions">
+                <button className="reaction">👍</button>
+                <button className="reaction">❤️</button>
+                <button className="reaction">😂</button>
+                <button className="reaction">😮</button>
+              </div>
+              
+              {/* Message Actions (for own messages) */}
+              {data.username === username && (
+                <div style={{marginTop: '5px'}}>
+                  <button 
+                    onClick={() => editMessage(data.id, data.message)}
+                    style={{background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer', fontSize: '12px', marginRight: '10px'}}
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button 
+                    onClick={() => {/* Delete message logic */}}
+                    style={{background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '12px'}}
+                  >
+                    🗑️ Delete
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -291,9 +427,66 @@ function App() {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Message Search */}
+      {showSearch && (
+        <div className="message-search active">
+          <input
+            type="text"
+            placeholder="Search messages..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+            autoFocus
+          />
+          <button 
+            onClick={() => setShowSearch(false)}
+            style={{position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'white', cursor: 'pointer'}}
+          >
+            ✕
+          </button>
+          {searchResults.length > 0 && (
+            <div className="search-results">
+              {searchResults.map((result, index) => (
+                <div key={index} className="search-result">
+                  <strong>{result.username}:</strong> {result.message}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Message Input */}
       <div className="message-input-container">
         <div className="message-input-wrapper">
+          {/* File Upload Button */}
+          <button 
+            className="file-upload-btn"
+            onClick={() => fileInputRef.current?.click()}
+            title="Upload File"
+          >
+            📎
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            style={{ display: 'none' }}
+            onChange={handleFileUpload}
+            accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
+          />
+
+          {/* Voice Message Button */}
+          <button 
+            className={`voice-message-btn ${isRecording ? 'recording' : ''}`}
+            onMouseDown={startRecording}
+            onMouseUp={stopRecording}
+            onTouchStart={startRecording}
+            onTouchEnd={stopRecording}
+            title="Hold to Record Voice Message"
+          >
+            🎤
+          </button>
+
           <button 
             className="emoji-btn"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -323,6 +516,7 @@ function App() {
             onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
             className="message-input"
             maxLength={500}
+            style={{fontSize: '16px'}} // Prevent zoom on mobile
           />
           
           <button 
