@@ -8,8 +8,8 @@ const config = {
   
   // Production server (deployed)
   production: {
-    // Replace with your actual Railway deployment URL
-    serverUrl: "https://quantumchat-server-production.up.railway.app",
+    // Replace with your actual Render deployment URL
+    serverUrl: "https://quantumchat-backend.onrender.com",
     clientUrl: "https://quantumchat-client.vercel.app"
   }
 };
